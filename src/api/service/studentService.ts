@@ -62,7 +62,7 @@ export async function getStudentLocationStats(
   page: number = 1,
   limit: number = 10,
 ): Promise<StudentLocationStats> {
-  setApiBaseUrl("https://eduhost.onrender.com/");
+  setApiBaseUrl("https://schoolglobalserver-be.onrender.com/");
   const res = await api.get<StudentLocationStats>(
     `api/subscribers/locations/stats?page=${page}&limit=${limit}`
   );
