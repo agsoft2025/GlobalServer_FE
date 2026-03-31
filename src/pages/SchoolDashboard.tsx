@@ -12,8 +12,13 @@ import SummaryCards from '../components/studentComponents/SummaryCards';
 import StudentDataTable from '../components/studentComponents/StudentDataTable';
 import AddLocationDialog from '../components/studentComponents/AddLocationDialog';
 import LocationWiseStudentsGrid from '../components/studentComponents/LocationWiseStudentsGrid';
+import { Button } from '@mui/material';
+import { FaLongArrowAltRight } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
 
 const SchoolDashboard = () => {
+
+  const navigate = useNavigate();
 
   const [summary, setSummary] = useState<StudentSummary | null>(null);
   const [rows, setRows] = useState<StudentLocationRecord[]>([]);
@@ -140,6 +145,10 @@ const SchoolDashboard = () => {
             >
               Add New Location
             </Button> */}
+            <Button variant="contained"
+            sx={{ bgcolor: "#3E6AB3", color: "#fff", display: "flex",gap:"0.5rem" }}
+            onClick={()=>navigate("admin")}
+            >Admin <FaLongArrowAltRight /></Button>
           </div>
 
           <StudentDataTable

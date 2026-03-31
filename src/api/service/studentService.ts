@@ -58,6 +58,12 @@ type LocationPayload = {
   _id?: string;
 };
 
+type CreateAdmin = {
+  username: string;
+  fullname: string;
+  password: string;
+}
+
 export async function getStudentLocationStats(
   page: number = 1,
   limit: number = 10,
@@ -116,5 +122,11 @@ export async function deleteLocation(data: LocationPayload) {
 
 export async function deleteStudentLocation(id: string) {
   const res = await api.delete(`api/subscribers/locations/${id}`);
+  return res.data;
+}
+
+// Admin modal
+export async function createAdmin(data: CreateAdmin) {
+  const res = await api.post('/user/admin/create', data);
   return res.data;
 }
