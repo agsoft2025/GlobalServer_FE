@@ -1,11 +1,21 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/AGS_logo.png";
+import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar() {
+  const { setToken } = useAuth();
+  const navigate = useNavigate();
+
   const menuItems = [
     { name: "Inmate Dashboard", path: "/inmate-dashboard" },
     { name: "School Dashboard", path: "/school-dashboard" },
   ];
+
+  const handleLogout = () => {
+    setToken(null);
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   return (
     <div
@@ -36,6 +46,16 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      {/* Logout Button */}
+      <div className="mt-auto">
+        <button
+          onClick={handleLogout}
+          className="w-full px-4 py-2 rounded-md font-medium bg-red-500 hover:bg-red-600 transition text-white"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 }
