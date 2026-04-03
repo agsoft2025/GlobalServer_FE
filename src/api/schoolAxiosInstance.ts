@@ -6,17 +6,20 @@ import type {
   InternalAxiosRequestConfig
 } from "axios";
 
-const api: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "https://inmate-project-global-server.onrender.com/",
+const schoolApi: AxiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_SCHOOL_SERVER_URL || "http://localhost:5000",
   timeout: 30000,
   headers: {
     "Content-Type": "application/json"
   }
 });
 
+console.log("import.meta.env.VITE_API_SCHOOL_SERVER_URL",import.meta.env.VITE_API_SCHOOL_SERVER_URL);
+
+
 // REQUEST INTERCEPTOR
 
-api.interceptors.request.use(
+schoolApi.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("token");
 
@@ -30,7 +33,7 @@ api.interceptors.request.use(
 );
 
 // RESPONSE INTERCEPTOR
-api.interceptors.response.use(
+schoolApi.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
@@ -42,8 +45,4 @@ api.interceptors.response.use(
   }
 );
 
-export function setApiBaseUrl(url: string) {
-  api.defaults.baseURL = url;
-}
-
-export default api;
+export default schoolApi;
