@@ -7,7 +7,10 @@ import {
   Button,
   TextField,
   CircularProgress,
+  IconButton,
+  InputAdornment,
 } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 type SchoolAdminFormData = {
   username: string;
@@ -36,6 +39,7 @@ export default function AddSchoolAdminDialog({
   selectedAdmin,
   setSelectedAdmin,
 }: AddSchoolAdminDialogProps) {
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<SchoolAdminFormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,6 +54,7 @@ export default function AddSchoolAdminDialog({
     } else {
       setFormData(initialFormData);
     }
+    setShowPassword(false);
   }, [selectedAdmin, open]);
 
   const validateForm = (): boolean => {
@@ -143,12 +148,26 @@ export default function AddSchoolAdminDialog({
             <TextField
               label="Password"
               name="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={handleChange}
               fullWidth
               error={!!errors.password}
               helperText={errors.password}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      edge="end"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setShowPassword(prev => !prev)}
+                      size="large"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
           </div>
         </DialogContent>
