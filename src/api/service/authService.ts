@@ -1,4 +1,4 @@
-import api, { setApiBaseUrl } from "../axiosInstance";
+import api from "../axiosInstance";
 
 export type LoginPayload = {
   username: string;
@@ -15,7 +15,6 @@ export type LoginResponse = {
 };
 
 export async function loginApi(payload: LoginPayload): Promise<LoginResponse> {
-   setApiBaseUrl("https://inmate-project-global-server.onrender.com/");
   const { data } = await api.post<LoginResponse>("/api/login", payload);
   return data;
 }

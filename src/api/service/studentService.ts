@@ -1,4 +1,5 @@
 import api, { setApiBaseUrl } from "../axiosInstance";
+import schoolApi from "../schoolAxiosInstance";
 import type { LocationWiseStudentResponse } from "../../types/studentTypes";
 
 // Set the base URL for student-related API calls
@@ -58,6 +59,12 @@ type LocationPayload = {
   _id?: string;
 };
 
+type CreateAdmin = {
+  username: string;
+  fullname: string;
+  password: string;
+}
+
 export async function getStudentLocationStats(
   page: number = 1,
   limit: number = 10,
@@ -116,5 +123,11 @@ export async function deleteLocation(data: LocationPayload) {
 
 export async function deleteStudentLocation(id: string) {
   const res = await api.delete(`api/subscribers/locations/${id}`);
+  return res.data;
+}
+
+// Admin modal
+export async function createAdmin(data: CreateAdmin) {
+  const res = await schoolApi.post('/user/admin/create', data);
   return res.data;
 }
