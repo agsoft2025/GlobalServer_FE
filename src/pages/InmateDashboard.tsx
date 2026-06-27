@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { createInmateLocation, getInmateLocationStats, getSingleInmateLocation, updateInmateLocation } from "../api/service/inmateService";
 import type { InmateLocationRecord, InmateSummary, IPayload, SingleInmateRecord } from "../types/inmateTypes";
 import SummaryCards from "../components/inmateComponents/SummaryCards";
@@ -6,6 +7,7 @@ import LocationTable from "../components/inmateComponents/InmateDatatable";
 import InmateLocationTable from "../components/inmateComponents/Inmatelocationtable";
 import { Button } from "@mui/material";
 import GlobalLocationDialog from "../components/inmateComponents/AddLocationDialogBox";
+import { FaLongArrowAltRight } from "react-icons/fa";
 
 export default function InmateDashboard() {
   const [summary, setSummary] = useState<InmateSummary | null>(null);
@@ -14,6 +16,7 @@ export default function InmateDashboard() {
   const [inmateLocationId, setInmateLocationId] = useState("");
   const [open, setOpen] = useState(false);
   const [seletedLocation, setSelectedLocation] = useState<any>(null);
+  const navigate = useNavigate();
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -91,7 +94,19 @@ export default function InmateDashboard() {
         <>
           <div className="flex items-center justify-between mb-3">
             <h1>Inmate Location Table</h1>
-            <Button variant="contained" color="success" onClick={() => setOpen(true)}>Create New Location</Button>
+            <div className="flex gap-3">
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ bgcolor: "#3E6AB3", color: "#fff", display: "flex", gap: "0.5rem" }}
+                onClick={() => navigate("admin")}
+              >
+                Admin <FaLongArrowAltRight />
+              </Button>
+              <Button variant="contained" color="success" onClick={() => setOpen(true)}>
+                Create New Location
+              </Button>
+            </div>
           </div>
           <LocationTable
             rows={rows}
