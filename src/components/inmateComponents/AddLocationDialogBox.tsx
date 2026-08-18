@@ -9,6 +9,7 @@ const formSchema = z.object({
     location: z.string().nonempty("Location name is required"),
     name: z.string().nonempty("Name is required"),
     baseUrl: z.string().url("Must be a valid URL"),
+    externalId: z.string().nonempty("External ID is required"),
     subscription_amount: z
         .number()
         .positive("Amount must be greater than 0")
@@ -32,6 +33,7 @@ export default function GlobalLocationDialog({ open, setOpen, handleLocationSubm
             location: "",
             name: "",
             baseUrl: "",
+            externalId: "",
             subscription_amount: 0,
         },
     });
@@ -42,6 +44,7 @@ export default function GlobalLocationDialog({ open, setOpen, handleLocationSubm
                 location: seletedLocation?.location,
                 name: seletedLocation?.name,
                 baseUrl: seletedLocation?.baseUrl,
+                externalId: seletedLocation?.externalId || "",
                 subscription_amount: Number(seletedLocation?.subscription_amount) || 0,
             })
         }
@@ -52,6 +55,7 @@ export default function GlobalLocationDialog({ open, setOpen, handleLocationSubm
             location: "",
             name: "",
             baseUrl: "",
+            externalId: "",
             subscription_amount: 0,
         });
         setSelectedLocation(null);
@@ -94,6 +98,14 @@ export default function GlobalLocationDialog({ open, setOpen, handleLocationSubm
                         {...register("baseUrl")}
                         error={!!errors.baseUrl}
                         helperText={errors.baseUrl?.message}
+                    />
+
+                    <TextField
+                        label="External ID"
+                        {...register("externalId")}
+                        error={!!errors.externalId}
+                        helperText={errors.externalId?.message}
+                        disabled={!!seletedLocation?._id}
                     />
 
                     <TextField

@@ -1,4 +1,3 @@
-import api, { setApiBaseUrl } from "../axiosInstance";
 import schoolApi from "../schoolAxiosInstance";
 import type { LocationWiseStudentResponse } from "../../types/studentTypes";
 
@@ -50,12 +49,12 @@ type SingleStudentLocation = {
 };
 
 type LocationPayload = {
-  locationName: string;
-  address: string;
-  contactPerson?: string;
-  contactNumber?: string;
-  email?: string;
-  status: 'active' | 'inactive';
+  name: string;
+  location: string;
+  baseUrl: string;
+  amount?: string | number;
+  externalId: string;
+  status?: 'active' | 'inactive';
   _id?: string;
 };
 
@@ -69,8 +68,7 @@ export async function getStudentLocationStats(
   page: number = 1,
   limit: number = 10,
 ): Promise<StudentLocationStats> {
-  setApiBaseUrl("https://schoolglobalserver-be.onrender.com/");
-  const res = await api.get<StudentLocationStats>(
+  const res = await schoolApi.get<StudentLocationStats>(
     `api/subscribers/locations/stats?page=${page}&limit=${limit}`
   );
   return res.data;
@@ -81,7 +79,7 @@ export async function getLocationWiseData(
   limit: number = 10,
   locationId: string
 ): Promise<LocationWiseStudentResponse> {
-  const res = await api.get<LocationWiseStudentResponse>(
+  const res = await schoolApi.get<LocationWiseStudentResponse>(
     `api/subscribers/location/${locationId}?page=${page}&limit=${limit}`
   );
   return res.data;
@@ -92,37 +90,37 @@ export async function getSingleStudentLocation(
   limit: number = 10,
   locationId: string
 ): Promise<SingleStudentLocation> {
-  const res = await api.get<SingleStudentLocation>(
+  const res = await schoolApi.get<SingleStudentLocation>(
     `api/subscribers/${locationId}/history?page=${page}&limit=${limit}`
   );
   return res.data;
 }
 
 export async function createStudentLocation(data: Omit<LocationPayload, '_id'>) {
-  const res = await api.post('api/subscribers/locations', data);
+  const res = await schoolApi.post('api/location', data);
   return res.data;
 }
 
 export async function updateStudentLocation(data: LocationPayload) {
   const { _id, ...updateData } = data;
-  const res = await api.put(`api/subscribers/locations/${_id}`, updateData);
+  const res = await schoolApi.put(`api/location/${_id}`, updateData);
   return res.data;
 }
 
 export async function updateLocation(data: LocationPayload) {
   const { _id, ...updateData } = data;
-  const res = await api.put(`api/location/${_id}`, updateData);
+  const res = await schoolApi.put(`api/location/${_id}`, updateData);
   return res.data;
 }
 
 export async function deleteLocation(data: LocationPayload) {
   const { _id } = data;
-  const res = await api.delete(`api/location/${_id}`);
+  const res = await schoolApi.delete(`api/location/${_id}`);
   return res.data;
 }
 
 export async function deleteStudentLocation(id: string) {
-  const res = await api.delete(`api/subscribers/locations/${id}`);
+  const res = await schoolApi.delete(`api/location/${id}`);
   return res.data;
 }
 

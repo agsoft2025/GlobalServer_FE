@@ -110,7 +110,7 @@ const SchoolDashboard = () => {
     try {
       if (selectedLocation?._id) {
 
-        await updateLocation({ ...data, _id: selectedLocation.externalId  });
+        await updateLocation({ ...data, _id: selectedLocation._id });
       } else {
         await createStudentLocation(data);
       }

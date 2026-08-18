@@ -72,6 +72,10 @@ export default function AddLocationDialog({
       newErrors.location = 'Address is required';
     }
 
+    if (!formData.externalId.trim()) {
+      newErrors.externalId = 'External ID is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -108,7 +112,10 @@ export default function AddLocationDialog({
 
     try {
       setIsSubmitting(true);
-      await handleLocationSubmit(formData);
+      await handleLocationSubmit({
+        ...formData,
+        amount: formData.amount === '' ? undefined : Number(formData.amount),
+      });
       handleClose();
     } catch (error) {
       console.error('Error submitting location:', error);
@@ -138,6 +145,17 @@ export default function AddLocationDialog({
               name="location"
               value={formData.location}
               onChange={handleChange}
+              fullWidth
+            />
+
+            <TextField
+              label="External ID"
+              name="externalId"
+              value={formData.externalId}
+              onChange={handleChange}
+              error={!!errors.externalId}
+              helperText={errors.externalId || "ID of this location in its own school server"}
+              disabled={!!selectedLocation}
               fullWidth
             />
 

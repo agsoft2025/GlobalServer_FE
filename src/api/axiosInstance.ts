@@ -7,7 +7,7 @@ import type {
 } from "axios";
 
 const api: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "https://inmate-project-global-server.onrender.com/",
+  baseURL: import.meta.env.VITE_API_INMATE_ADMIN_BASE_URL || "https://apiglobalinmate.agsoftsolutions.co.in/",
   timeout: 30000,
   headers: {
     "Content-Type": "application/json"

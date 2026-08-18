@@ -9,6 +9,7 @@ export type LocationStatsResponse = {
 
 export type InmateLocationRecord = {
   _id: string;
+  externalId?: string;
   name: string;
   baseUrl: string;
   location: string;
@@ -101,6 +102,7 @@ export type SingleInmateResponse = {
 
 export interface IPayload {
   _id?: string;
+  externalId: string;
   location: string;
   name: string;
   baseUrl: string;

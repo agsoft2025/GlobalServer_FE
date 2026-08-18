@@ -6,11 +6,12 @@ export type LoginPayload = {
 };
 
 export type LoginResponse = {
+  status: boolean;
   token: string;
   user: {
-    id: string;
     username: string;
-    name: string;
+    fullname: string;
+    role: string;
   };
 };
 

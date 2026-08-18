@@ -1,12 +1,13 @@
 // src/api/subscribers.ts
 import type { InmateStatsResponse } from "../../types/inmateTypes";
-import api, { setApiBaseUrl } from "../axiosInstance";
+import api from "../axiosInstance";
 
 interface IPayload {
   location: string;
   name: string;
   baseUrl: string;
   subscription_amount: string | number;
+  externalId: string;
   _id?: string
 }
 
@@ -14,7 +15,6 @@ export async function getInmateLocationStats(
   page: number = 1,
   limit: number = 10,
 ): Promise<InmateStatsResponse> {
-  setApiBaseUrl("https://inmate-project-global-server.onrender.com/");
   const res = await api.get<InmateStatsResponse>(
     `/api/subscribers/locations/stats?page=${page}&limit=${limit}`
   );

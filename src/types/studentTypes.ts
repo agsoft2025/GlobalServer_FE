@@ -31,14 +31,13 @@ export interface StudentDetailRecord {
 }
 
 export interface IPayload {
-  locationName: string;
-  address: string;
-  contactPerson?: string;
-  contactNumber?: string;
-  email?: string;
-  status: 'active' | 'inactive';
+  name: string;
+  location: string;
+  baseUrl: string;
+  amount?: string | number;
+  status?: 'active' | 'inactive';
   _id?: string;
-  externalId?: string;
+  externalId: string;
 }
 
 export interface StudentLocationResponse {

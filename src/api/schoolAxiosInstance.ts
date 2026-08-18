@@ -7,7 +7,7 @@ import type {
 } from "axios";
 
 const schoolApi: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_SCHOOL_SERVER_URL,
+  baseURL: import.meta.env.VITE_API_SCHOOL_ADMIN_BASE_URL || "https://apiglobalschool.agsoftsolutions.co.in/",
   timeout: 30000,
   headers: {
     "Content-Type": "application/json"
