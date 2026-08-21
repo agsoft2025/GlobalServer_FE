@@ -5,9 +5,12 @@ import SummaryCards from "../components/inmateComponents/SummaryCards";
 import LocationTable from "../components/inmateComponents/InmateDatatable";
 import InmateLocationTable from "../components/inmateComponents/Inmatelocationtable";
 import { Button } from "@mui/material";
+import { FaLongArrowAltRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import GlobalLocationDialog from "../components/inmateComponents/AddLocationDialogBox";
 
 export default function InmateDashboard() {
+  const navigate = useNavigate();
   const [summary, setSummary] = useState<InmateSummary | null>(null);
   const [rows, setRows] = useState<InmateLocationRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +94,14 @@ export default function InmateDashboard() {
         <>
           <div className="flex items-center justify-between mb-3">
             <h1>Inmate Location Table</h1>
-            <Button variant="contained" color="success" onClick={() => setOpen(true)}>Create New Location</Button>
+            <div className="flex items-center gap-2">
+              <Button variant="contained" color="success" onClick={() => setOpen(true)}>Create New Location</Button>
+              <Button
+                variant="contained"
+                sx={{ bgcolor: "#3E6AB3", color: "#fff", display: "flex", gap: "0.5rem" }}
+                onClick={() => navigate("admin")}
+              >Admin <FaLongArrowAltRight /></Button>
+            </div>
           </div>
           <LocationTable
             rows={rows}

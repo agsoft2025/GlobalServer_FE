@@ -12,48 +12,48 @@ import {
   MenuItem,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { getSchoolLocations, type SchoolLocationOption } from '../../api/service/adminService';
+import { getInmateLocations, type InmateLocationOption } from '../../api/service/inmateAdminService';
 
-type SchoolAdminFormData = {
+type InmateAdminFormData = {
   username: string;
   fullname: string;
   password: string;
   location_id: string;
 };
 
-type AddSchoolAdminDialogProps = {
+type AddInmateAdminDialogProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
-  handleSubmitAdmin: (data: SchoolAdminFormData) => Promise<void>;
+  handleSubmitAdmin: (data: InmateAdminFormData) => Promise<void>;
   selectedAdmin: any;
   setSelectedAdmin: (admin: any) => void;
 };
 
-const initialFormData: SchoolAdminFormData = {
+const initialFormData: InmateAdminFormData = {
   username: '',
   fullname: '',
   password: '',
   location_id: '',
 };
 
-export default function AddSchoolAdminDialog({
+export default function AddInmateAdminDialog({
   open,
   setOpen,
   handleSubmitAdmin,
   selectedAdmin,
   setSelectedAdmin,
-}: AddSchoolAdminDialogProps) {
+}: AddInmateAdminDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState<SchoolAdminFormData>(initialFormData);
+  const [formData, setFormData] = useState<InmateAdminFormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [locations, setLocations] = useState<SchoolLocationOption[]>([]);
+  const [locations, setLocations] = useState<InmateLocationOption[]>([]);
 
   useEffect(() => {
     if (!open) return;
-    getSchoolLocations()
+    getInmateLocations()
       .then(setLocations)
-      .catch((error) => console.error('Failed to fetch school locations:', error));
+      .catch((error) => console.error('Failed to fetch inmate locations:', error));
   }, [open]);
 
   useEffect(() => {
@@ -81,14 +81,12 @@ export default function AddSchoolAdminDialog({
       newErrors.fullname = 'Full name is required';
     }
 
-    // Only require password when creating
     if (!selectedAdmin && !formData.password.trim()) {
       newErrors.password = 'Password is required';
     }
 
-    // Only require location when creating; editing an existing admin's location is optional
     if (!selectedAdmin && !formData.location_id) {
-      newErrors.location_id = 'School is required';
+      newErrors.location_id = 'Facility is required';
     }
 
     setErrors(newErrors);
@@ -165,7 +163,7 @@ export default function AddSchoolAdminDialog({
 
             <TextField
               select
-              label="School"
+              label="Facility"
               name="location_id"
               value={formData.location_id}
               onChange={handleChange}
@@ -175,7 +173,7 @@ export default function AddSchoolAdminDialog({
             >
               {locations.map((loc) => (
                 <MenuItem key={loc._id} value={loc._id}>
-                  {loc.schoolName} — {loc.locationName}
+                  {loc.name} — {loc.locationName}
                 </MenuItem>
               ))}
             </TextField>

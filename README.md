@@ -1,5 +1,18 @@
 # React + TypeScript + Vite
 
+## API configuration
+
+Copy `.env.example` to `.env` in this project root and set the backend URLs:
+
+```env
+VITE_API_INMATE_ADMIN_BASE_URL=http://localhost:3002
+VITE_API_SCHOOL_ADMIN_BASE_URL=http://localhost:4002
+```
+
+All backend paths are centralized in [src/api/endpoints.ts](src/api/endpoints.ts). The registry covers health, authentication, locations, subscribers, and payments. Axios clients and services use those definitions instead of composing URL strings themselves.
+
+The current SchoolGlobalServer backend does not register `/api/admin` or `/user/admin/create`; the existing school admin screen will need matching backend routes before those calls can succeed.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

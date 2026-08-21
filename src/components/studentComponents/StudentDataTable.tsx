@@ -187,6 +187,7 @@ export default function StudentDataTable({
           autoHeight
           rowCount={totalRows}
           paginationMode="server"
+          pageSizeOptions={[5, 10, 25, 50]}
           paginationModel={paginationModel}
           onPaginationModelChange={(model) => {
             // Convert DataGrid 0-indexed page to API 1-indexed

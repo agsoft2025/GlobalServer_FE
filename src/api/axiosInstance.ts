@@ -5,9 +5,10 @@ import type {
   AxiosError,
   InternalAxiosRequestConfig
 } from "axios";
+import { getApiBaseUrl } from "./api";
 
 const api: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_INMATE_ADMIN_BASE_URL || "https://apiglobalinmate.agsoftsolutions.co.in/",
+  baseURL: getApiBaseUrl("inmate"),
   timeout: 30000,
   headers: {
     "Content-Type": "application/json"

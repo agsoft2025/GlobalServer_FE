@@ -1,23 +1,21 @@
 import axios from "axios";
 import type {
+  AxiosError,
   AxiosInstance,
   AxiosResponse,
-  AxiosError,
-  InternalAxiosRequestConfig
+  InternalAxiosRequestConfig,
 } from "axios";
 import { getApiBaseUrl } from "./api";
 
-const schoolApi: AxiosInstance = axios.create({
-  baseURL: getApiBaseUrl("school"),
+const inmateLocalApi: AxiosInstance = axios.create({
+  baseURL: getApiBaseUrl("inmate", "local"),
   timeout: 30000,
   headers: {
-    "Content-Type": "application/json"
-  }
+    "Content-Type": "application/json",
+  },
 });
 
-// REQUEST INTERCEPTOR
-
-schoolApi.interceptors.request.use(
+inmateLocalApi.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("token");
 
@@ -27,20 +25,18 @@ schoolApi.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
-// RESPONSE INTERCEPTOR
-schoolApi.interceptors.response.use(
+inmateLocalApi.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       console.warn("Unauthorized - token expired");
-      // optional logout logic
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
-export default schoolApi;
+export default inmateLocalApi;

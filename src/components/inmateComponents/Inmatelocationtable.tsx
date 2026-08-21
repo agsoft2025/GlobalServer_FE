@@ -82,6 +82,7 @@ export default function InmateLocationTable({
                 autoHeight
                 rowCount={totalRows}
                 paginationMode="server"
+                pageSizeOptions={[5, 10, 25, 50]}
                 paginationModel={{ page: page - 1, pageSize }}
                 onPaginationModelChange={(model) => {
                     onPageChange(model.page + 1);

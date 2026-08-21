@@ -1,4 +1,5 @@
 import api from "../axiosInstance";
+import { endpoints } from "../api";
 
 export type LoginPayload = {
   username: string;
@@ -16,6 +17,6 @@ export type LoginResponse = {
 };
 
 export async function loginApi(payload: LoginPayload): Promise<LoginResponse> {
-  const { data } = await api.post<LoginResponse>("/api/login", payload);
+  const { data } = await api.post<LoginResponse>(endpoints.auth.login, payload);
   return data;
 }

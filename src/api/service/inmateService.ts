@@ -1,6 +1,7 @@
 // src/api/subscribers.ts
 import type { InmateStatsResponse } from "../../types/inmateTypes";
 import api from "../axiosInstance";
+import { endpoints } from "../api";
 
 interface IPayload {
   location: string;
@@ -15,9 +16,9 @@ export async function getInmateLocationStats(
   page: number = 1,
   limit: number = 10,
 ): Promise<InmateStatsResponse> {
-  const res = await api.get<InmateStatsResponse>(
-    `/api/subscribers/locations/stats?page=${page}&limit=${limit}`
-  );
+  const res = await api.get<InmateStatsResponse>(endpoints.subscribers.locationStats, {
+    params: { page, limit },
+  });
   return res.data;
 }
 
@@ -27,7 +28,8 @@ export async function getSingleInmateLocation(
   id: string
 ): Promise<InmateStatsResponse> {
   const res = await api.get<InmateStatsResponse>(
-    `/api/subscribers/location/${id}?page=${page}&limit=${limit}`
+    endpoints.subscribers.byLocation(id),
+    { params: { page, limit } },
   );
   
   return res.data;
@@ -35,7 +37,7 @@ export async function getSingleInmateLocation(
 export async function createInmateLocation(
   payload: IPayload
 ): Promise<IPayload> {
-  const res = await api.post<IPayload>("/api/location", payload);
+  const res = await api.post<IPayload>(endpoints.location.list, payload);
 
   return res.data;
 }
@@ -43,6 +45,6 @@ export async function createInmateLocation(
 export async function updateInmateLocation(
   payload: IPayload
 ): Promise<IPayload> {
-  const res = await api.put<IPayload>(`/api/location/${payload?._id}`, payload);
+  const res = await api.put<IPayload>(endpoints.location.byId(payload?._id ?? ""), payload);
   return res.data;
 }

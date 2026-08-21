@@ -1,29 +1,30 @@
 import { useState, useEffect } from "react";
-import AddSchoolAdminDialog from "../components/studentComponents/AddAdminDialog";
+import AddInmateAdminDialog from "../components/inmateComponents/AddInmateAdminDialog";
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, TablePagination } from "@mui/material";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
-import { createAdmin } from "../api/service/studentService";
-import { getAdmins, deleteAdmin, updateAdmin, type Admin, type AdminQueryParams } from "../api/service/adminService";
+import {
+  getInmateAdmins,
+  createInmateAdmin,
+  updateInmateAdmin,
+  deleteInmateAdmin,
+  type InmateAdmin,
+} from "../api/service/inmateAdminService";
 import { ConfirmDialog } from "../components/common/ConfirmDialog";
 
-const SchoolAdmins = () => {
+const InmateAdmins = () => {
     const [openAdmin, setOpenAdmin] = useState<boolean>(false);
-    const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
-    const [admins, setAdmins] = useState<Admin[]>([]);
+    const [selectedAdmin, setSelectedAdmin] = useState<InmateAdmin | null>(null);
+    const [admins, setAdmins] = useState<InmateAdmin[]>([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
-    const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; admin: Admin | null }>({ open: false, admin: null });
+    const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; admin: InmateAdmin | null }>({ open: false, admin: null });
 
     const fetchAdmins = async () => {
         try {
-            const params: AdminQueryParams = {
-                page: page + 1,
-                limit: rowsPerPage,
-            };
-            const response = await getAdmins(params);
+            const response = await getInmateAdmins({ page: page + 1, limit: rowsPerPage });
             setAdmins(response.data);
-            setTotalItems(response.pagination.totalItems);
+            setTotalItems(response.pagination.total);
         } catch (error) {
             console.error("Failed to fetch admins:", error);
         }
@@ -36,11 +37,9 @@ const SchoolAdmins = () => {
     const handleSubmitAdmin = async (data: any) => {
         try {
             if (selectedAdmin) {
-                // Update
-                await updateAdmin(selectedAdmin._id, data);
+                await updateInmateAdmin(selectedAdmin._id, data);
             } else {
-                // Create
-                await createAdmin(data);
+                await createInmateAdmin(data);
             }
             fetchAdmins();
             setOpenAdmin(false);
@@ -50,19 +49,19 @@ const SchoolAdmins = () => {
         }
     };
 
-    const handleEdit = (admin: Admin) => {
+    const handleEdit = (admin: InmateAdmin) => {
         setSelectedAdmin(admin);
         setOpenAdmin(true);
     };
 
-    const handleDelete = (admin: Admin) => {
+    const handleDelete = (admin: InmateAdmin) => {
         setConfirmDelete({ open: true, admin });
     };
 
     const confirmDeleteAdmin = async () => {
         if (confirmDelete.admin) {
             try {
-                await deleteAdmin(confirmDelete.admin._id);
+                await deleteInmateAdmin(confirmDelete.admin._id);
                 fetchAdmins();
             } catch (error) {
                 console.error("Failed to delete admin:", error);
@@ -74,12 +73,11 @@ const SchoolAdmins = () => {
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-xl font-semibold">School Admins</h1>
+                <h1 className="text-xl font-semibold">Inmate Admins</h1>
 
-                {/* ✅ Button to open dialog */}
                 <Button
                     onClick={() => {
-                        setSelectedAdmin(null); // ensure it's create mode
+                        setSelectedAdmin(null);
                         setOpenAdmin(true);
                     }}
                     sx={{ bgcolor: "#3E6AB3", color: "#fff", display: "flex", gap: "0.5rem" }}
@@ -89,7 +87,6 @@ const SchoolAdmins = () => {
                 </Button>
             </div>
 
-            {/* Admins Table */}
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
@@ -108,7 +105,7 @@ const SchoolAdmins = () => {
                                 <TableCell>{admin.fullname}</TableCell>
                                 <TableCell>
                                     {typeof admin.location_id === "object" && admin.location_id
-                                        ? admin.location_id.schoolName || admin.location_id.locationName || "N/A"
+                                        ? admin.location_id.name || admin.location_id.locationName || "N/A"
                                         : "N/A"}
                                 </TableCell>
                                 <TableCell>{admin.role}</TableCell>
@@ -138,8 +135,7 @@ const SchoolAdmins = () => {
                 }}
             />
 
-            {/* ✅ Dialog */}
-            <AddSchoolAdminDialog
+            <AddInmateAdminDialog
                 open={openAdmin}
                 setOpen={setOpenAdmin}
                 handleSubmitAdmin={handleSubmitAdmin}
@@ -147,7 +143,6 @@ const SchoolAdmins = () => {
                 setSelectedAdmin={setSelectedAdmin}
             />
 
-            {/* Confirm Delete Dialog */}
             <ConfirmDialog
                 open={confirmDelete.open}
                 onCancel={() => setConfirmDelete({ open: false, admin: null })}
@@ -159,4 +154,4 @@ const SchoolAdmins = () => {
     );
 };
 
-export default SchoolAdmins;
+export default InmateAdmins;

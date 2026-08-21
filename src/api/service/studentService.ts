@@ -1,4 +1,6 @@
 import schoolApi from "../schoolAxiosInstance";
+import schoolLocalApi from "../schoolLocalAxiosInstance";
+import { endpoints, schoolLocalEndpoints } from "../api";
 import type { LocationWiseStudentResponse } from "../../types/studentTypes";
 
 // Set the base URL for student-related API calls
@@ -62,15 +64,16 @@ type CreateAdmin = {
   username: string;
   fullname: string;
   password: string;
+  location_id: string;
 }
 
 export async function getStudentLocationStats(
   page: number = 1,
   limit: number = 10,
 ): Promise<StudentLocationStats> {
-  const res = await schoolApi.get<StudentLocationStats>(
-    `api/subscribers/locations/stats?page=${page}&limit=${limit}`
-  );
+  const res = await schoolApi.get<StudentLocationStats>(endpoints.subscribers.locationStats, {
+    params: { page, limit },
+  });
   return res.data;
 }
 
@@ -80,7 +83,8 @@ export async function getLocationWiseData(
   locationId: string
 ): Promise<LocationWiseStudentResponse> {
   const res = await schoolApi.get<LocationWiseStudentResponse>(
-    `api/subscribers/location/${locationId}?page=${page}&limit=${limit}`
+    endpoints.subscribers.byLocation(locationId),
+    { params: { page, limit } },
   );
   return res.data;
 }
@@ -91,41 +95,42 @@ export async function getSingleStudentLocation(
   locationId: string
 ): Promise<SingleStudentLocation> {
   const res = await schoolApi.get<SingleStudentLocation>(
-    `api/subscribers/${locationId}/history?page=${page}&limit=${limit}`
+    endpoints.subscribers.studentHistory(locationId),
+    { params: { page, limit } },
   );
   return res.data;
 }
 
 export async function createStudentLocation(data: Omit<LocationPayload, '_id'>) {
-  const res = await schoolApi.post('api/location', data);
+  const res = await schoolApi.post(endpoints.location.list, data);
   return res.data;
 }
 
 export async function updateStudentLocation(data: LocationPayload) {
   const { _id, ...updateData } = data;
-  const res = await schoolApi.put(`api/location/${_id}`, updateData);
+  const res = await schoolApi.put(endpoints.location.byId(_id ?? ""), updateData);
   return res.data;
 }
 
 export async function updateLocation(data: LocationPayload) {
   const { _id, ...updateData } = data;
-  const res = await schoolApi.put(`api/location/${_id}`, updateData);
+  const res = await schoolApi.put(endpoints.location.byId(_id ?? ""), updateData);
   return res.data;
 }
 
 export async function deleteLocation(data: LocationPayload) {
   const { _id } = data;
-  const res = await schoolApi.delete(`api/location/${_id}`);
+  const res = await schoolApi.delete(endpoints.location.byId(_id ?? ""));
   return res.data;
 }
 
 export async function deleteStudentLocation(id: string) {
-  const res = await schoolApi.delete(`api/location/${id}`);
+  const res = await schoolApi.delete(endpoints.location.byId(id));
   return res.data;
 }
 
 // Admin modal
 export async function createAdmin(data: CreateAdmin) {
-  const res = await schoolApi.post('/user/admin/create', data);
+  const res = await schoolLocalApi.post(schoolLocalEndpoints.admin.create, data);
   return res.data;
 }
