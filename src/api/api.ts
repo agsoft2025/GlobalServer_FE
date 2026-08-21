@@ -4,10 +4,10 @@ type ApiService = "school" | "inmate";
 const env = import.meta.env;
 
 export const API_BASE_URLS = {
-  schoolGlobal: env.VITE_SCHOOL_GLOBAL_API_URL || "https://schoolapi.agsoftsolutions.co.in/",
-  schoolLocal: env.VITE_SCHOOL_LOCAL_API_URL || "http://localhost:4001/",
-  inmateGlobal: env.VITE_INMATE_GLOBAL_API_URL || "https://inmateapi.agsoftsolutions.co.in/",
-  inmateLocal: env.VITE_INMATE_LOCAL_API_URL || "http://localhost:3001/",
+  schoolGlobal: env.VITE_SCHOOL_GLOBAL_API_URL || "https://apiglobalschool.agsoftsolutions.co.in/",
+  schoolLocal: env.VITE_SCHOOL_LOCAL_API_URL || "https://schoolapi.agsoftsolutions.co.in/",
+  inmateGlobal: env.VITE_INMATE_GLOBAL_API_URL || "https://apiglobalinmate.agsoftsolutions.co.in/",
+  inmateLocal: env.VITE_INMATE_LOCAL_API_URL || "https://inmateapi.agsoftsolutions.co.in/",
 } as const;
 
 export const API_TARGET: ApiTarget = env.VITE_API_TARGET === "local" ? "local" : "global";
