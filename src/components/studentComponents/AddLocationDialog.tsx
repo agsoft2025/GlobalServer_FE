@@ -72,10 +72,6 @@ export default function AddLocationDialog({
       newErrors.location = 'Address is required';
     }
 
-    if (!formData.externalId.trim()) {
-      newErrors.externalId = 'External ID is required';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -148,16 +144,16 @@ export default function AddLocationDialog({
               fullWidth
             />
 
-            <TextField
-              label="External ID"
-              name="externalId"
-              value={formData.externalId}
-              onChange={handleChange}
-              error={!!errors.externalId}
-              helperText={errors.externalId || "ID of this location in its own school server"}
-              disabled={!!selectedLocation}
-              fullWidth
-            />
+            {selectedLocation && (
+              <TextField
+                label="External ID"
+                name="externalId"
+                value={formData.externalId}
+                helperText="ID of this location in its own school server (read-only)"
+                disabled
+                fullWidth
+              />
+            )}
 
             <TextField
               label="Base URL"

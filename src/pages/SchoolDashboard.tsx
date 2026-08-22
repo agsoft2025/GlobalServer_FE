@@ -4,6 +4,7 @@ import {
   getSingleStudentLocation,
   createStudentLocation,
   type StudentLocationStats,
+  type AdminProvisioningResult,
   getLocationWiseData,
   updateLocation,
 } from '../api/service/studentService';
@@ -12,7 +13,7 @@ import SummaryCards from '../components/studentComponents/SummaryCards';
 import StudentDataTable from '../components/studentComponents/StudentDataTable';
 import AddLocationDialog from '../components/studentComponents/AddLocationDialog';
 import LocationWiseStudentsGrid from '../components/studentComponents/LocationWiseStudentsGrid';
-import { Button } from '@mui/material';
+import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Typography, Alert } from '@mui/material';
 import { FaLongArrowAltRight } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +28,7 @@ const SchoolDashboard = () => {
   const [locationID, setLocationID] = useState("");
   const [open, setOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<StudentLocationRecord | null>(null);
+  const [provisioningResult, setProvisioningResult] = useState<AdminProvisioningResult>(null);
 
   // Pagination for location table
   const [page, setPage] = useState(1);
@@ -109,10 +111,12 @@ const SchoolDashboard = () => {
   const handleSubmit = async (data: IPayload) => {
     try {
       if (selectedLocation?._id) {
-
         await updateLocation({ ...data, _id: selectedLocation._id });
       } else {
-        await createStudentLocation(data);
+        const created = await createStudentLocation(data);
+        if (created.adminProvisioning) {
+          setProvisioningResult(created.adminProvisioning);
+        }
       }
       // Refresh data
       fetchData(page, pageSize);
@@ -137,18 +141,19 @@ const SchoolDashboard = () => {
         <>
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-semibold">Student Location Management</h1>
-            {/* <Button
-              variant="contained"
-              color="primary"
-              sx={{bgcolor: "#3E6AB3"}}
-              onClick={() => setOpen(true)}
-            >
-              Add New Location
-            </Button> */}
-            <Button variant="contained"
-            sx={{ bgcolor: "#3E6AB3", color: "#fff", display: "flex",gap:"0.5rem" }}
-            onClick={()=>navigate("admin")}
-            >Admin <FaLongArrowAltRight /></Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="contained"
+                color="success"
+                onClick={() => setOpen(true)}
+              >
+                Create New Location
+              </Button>
+              <Button variant="contained"
+              sx={{ bgcolor: "#3E6AB3", color: "#fff", display: "flex",gap:"0.5rem" }}
+              onClick={()=>navigate("admin")}
+              >Admin <FaLongArrowAltRight /></Button>
+            </div>
           </div>
 
           <StudentDataTable
@@ -191,6 +196,33 @@ const SchoolDashboard = () => {
         selectedLocation={selectedLocation}
         setSelectedLocation={setSelectedLocation}
       />
+
+      <Dialog open={!!provisioningResult} onClose={() => setProvisioningResult(null)} maxWidth="sm" fullWidth>
+        <DialogTitle>Location Created</DialogTitle>
+        <DialogContent>
+          {provisioningResult?.status === 'success' ? (
+            <>
+              <DialogContentText sx={{ mb: 2 }}>
+                A school admin account was created automatically for this location. Save these
+                credentials now — the password can't be shown again.
+              </DialogContentText>
+              <Typography><strong>Username:</strong> {provisioningResult.username}</Typography>
+              <Typography><strong>Password:</strong> {provisioningResult.password}</Typography>
+            </>
+          ) : (
+            <Alert severity="warning">
+              Location was created, but automatic admin setup failed
+              {provisioningResult?.status === 'failed' ? `: ${provisioningResult.message}` : ''}.
+              You can add an admin for it manually from the Admin screen.
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setProvisioningResult(null)} variant="contained">
+            Done
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }
