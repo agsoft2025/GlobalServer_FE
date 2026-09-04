@@ -58,12 +58,6 @@ export default function StudentDataTable({
       minWidth: 200,
     },
     {
-      field: "baseUrl",
-      headerName: "Base URL",
-      flex: 1,
-      minWidth: 200,
-    },
-    {
       field: "amount",
       headerName: "Amount",
       minWidth: 30,

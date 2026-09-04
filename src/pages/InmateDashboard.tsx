@@ -4,7 +4,7 @@ import type { InmateLocationRecord, InmateSummary, IPayload, SingleInmateRecord 
 import SummaryCards from "../components/inmateComponents/SummaryCards";
 import LocationTable from "../components/inmateComponents/InmateDatatable";
 import InmateLocationTable from "../components/inmateComponents/Inmatelocationtable";
-import { Button } from "@mui/material";
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert } from "@mui/material";
 import { FaLongArrowAltRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import GlobalLocationDialog from "../components/inmateComponents/AddLocationDialogBox";
@@ -17,6 +17,7 @@ export default function InmateDashboard() {
   const [inmateLocationId, setInmateLocationId] = useState("");
   const [open, setOpen] = useState(false);
   const [seletedLocation, setSelectedLocation] = useState<any>(null);
+  const [syncWarning, setSyncWarning] = useState<string | null>(null);
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -69,11 +70,12 @@ export default function InmateDashboard() {
       if (seletedLocation?._id) {
         await updateInmateLocation({...data, _id: seletedLocation?._id});
       } else {
-        await createInmateLocation(data);
+        const created = await createInmateLocation(data);
+        if (created.locationSync?.status === "failed") {
+          setSyncWarning(created.locationSync.message);
+        }
       }
-      const response: any = await fetchData(page, pageSize);
-      setRows(response.data);
-      setTotalRows(response.pagination.total);
+      await fetchData(page, pageSize);
     } catch (error) {
       console.log(error)
     }finally{
@@ -139,6 +141,22 @@ export default function InmateDashboard() {
       }
 
       <GlobalLocationDialog open={open} setOpen={setOpen} handleLocationSubmit={handleSubmit} seletedLocation={seletedLocation} setSelectedLocation={setSelectedLocation} />
+
+      <Dialog open={!!syncWarning} onClose={() => setSyncWarning(null)} maxWidth="sm" fullWidth>
+        <DialogTitle>Location Created</DialogTitle>
+        <DialogContent>
+          <Alert severity="warning">
+            The location was created, but it could not be synced to the local
+            server{syncWarning ? `: ${syncWarning}` : ""}. It may not appear in
+            the Add Admin dropdown until the next edit re-syncs it.
+          </Alert>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setSyncWarning(null)} variant="contained">
+            Done
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

@@ -102,9 +102,10 @@ export type SingleInmateResponse = {
 
 export interface IPayload {
   _id?: string;
-  externalId: string;
+  externalId?: string;
   location: string;
   name: string;
-  baseUrl: string;
+  // No longer collected in the UI; one common base URL is shared by all local servers.
+  baseUrl?: string;
   subscription_amount: string | number;
 }

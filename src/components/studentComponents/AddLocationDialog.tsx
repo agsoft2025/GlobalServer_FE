@@ -12,7 +12,6 @@ import {
 type LocationFormData = {
   name: string;
   location: string;
-  baseUrl: string;
   amount: string;
   status: 'active' | 'inactive';
   externalId: string;
@@ -29,7 +28,6 @@ type AddLocationDialogProps = {
 const initialFormData: LocationFormData = {
   name: '',
   location: '',
-  baseUrl: '',
   amount: '',
   status: 'active',
   externalId: '',
@@ -44,17 +42,19 @@ export default function AddLocationDialog({
 }: AddLocationDialogProps) {
   const [formData, setFormData] = useState<LocationFormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isEdit = Boolean(selectedLocation);
 
   useEffect(() => {
     if (selectedLocation) {
       setFormData({
+        ...initialFormData,
         name: selectedLocation.name || '',
         location: selectedLocation.location || '',
-        baseUrl: selectedLocation.baseUrl || '',
         amount: selectedLocation.amount || '',
         status: selectedLocation.status || 'active',
-        externalId: selectedLocation?.externalId || ""
+        externalId: selectedLocation?.externalId || '',
       });
     } else {
       setFormData(initialFormData);
@@ -83,7 +83,6 @@ export default function AddLocationDialog({
       [name as string]: value,
     }));
 
-    // Clear error when user starts typing
     if (errors[name as string]) {
       setErrors(prev => ({
         ...prev,
@@ -124,7 +123,7 @@ export default function AddLocationDialog({
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
         <DialogTitle>
-          {selectedLocation ? 'Edit Location' : 'Add New Location'}
+          {isEdit ? 'Edit Location' : 'Add New Location'}
         </DialogTitle>
         <DialogContent dividers>
           <div className='grid grid-cols-1 gap-2'>
@@ -133,6 +132,8 @@ export default function AddLocationDialog({
               name="name"
               value={formData.name}
               onChange={handleChange}
+              error={!!errors.name}
+              helperText={errors.name}
               fullWidth
             />
 
@@ -141,10 +142,12 @@ export default function AddLocationDialog({
               name="location"
               value={formData.location}
               onChange={handleChange}
+              error={!!errors.location}
+              helperText={errors.location}
               fullWidth
             />
 
-            {selectedLocation && (
+            {isEdit && (
               <TextField
                 label="External ID"
                 name="externalId"
@@ -156,14 +159,6 @@ export default function AddLocationDialog({
             )}
 
             <TextField
-              label="Base URL"
-              name="baseUrl"
-              value={formData.baseUrl}
-              onChange={handleChange}
-              fullWidth
-            />
-
-            <TextField
               label="Amount"
               name="amount"
               type="number"
@@ -172,20 +167,6 @@ export default function AddLocationDialog({
               fullWidth
               onWheel={(e) => e.currentTarget.blur()}
             />
-            {/* <FormControl fullWidth margin="normal">
-              <InputLabel id="status-label">Status</InputLabel>
-              <Select
-                labelId="status-label"
-                id="status"
-                name="status"
-                value={formData.status}
-                label="Status"
-                onChange={handleChange}
-              >
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="inactive">Inactive</MenuItem>
-              </Select>
-            </FormControl> */}
           </div>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
@@ -201,7 +182,7 @@ export default function AddLocationDialog({
               isSubmitting ? <CircularProgress size={20} /> : null
             }
           >
-            {selectedLocation ? 'Update' : 'Create'}
+            {isEdit ? 'Update' : 'Create'}
           </Button>
         </DialogActions>
       </form>

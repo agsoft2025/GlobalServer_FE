@@ -6,10 +6,12 @@ import { endpoints } from "../api";
 interface IPayload {
   location: string;
   name: string;
-  baseUrl: string;
+  // No longer collected in the UI; one common base URL is shared by all local
+  // servers. Kept optional for back-compat.
+  baseUrl?: string;
   subscription_amount: string | number;
-  externalId: string;
-  _id?: string
+  externalId?: string;
+  _id?: string;
 }
 
 export async function getInmateLocationStats(
@@ -34,10 +36,22 @@ export async function getSingleInmateLocation(
   
   return res.data;
 }
+// Result of mirroring the new location down to the local inmate server. On
+// "failed" the Global location still exists; it just won't appear in the local
+// server's Add Admin dropdown until a later edit re-syncs it.
+export type LocationSyncResult =
+  | { status: "success" }
+  | { status: "failed"; message: string }
+  | null;
+
+export type CreateInmateLocationResponse = IPayload & {
+  locationSync?: LocationSyncResult;
+};
+
 export async function createInmateLocation(
   payload: IPayload
-): Promise<IPayload> {
-  const res = await api.post<IPayload>(endpoints.location.list, payload);
+): Promise<CreateInmateLocationResponse> {
+  const res = await api.post<CreateInmateLocationResponse>(endpoints.location.list, payload);
 
   return res.data;
 }

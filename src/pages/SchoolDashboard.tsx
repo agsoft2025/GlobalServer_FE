@@ -4,7 +4,6 @@ import {
   getSingleStudentLocation,
   createStudentLocation,
   type StudentLocationStats,
-  type AdminProvisioningResult,
   getLocationWiseData,
   updateLocation,
 } from '../api/service/studentService';
@@ -13,7 +12,7 @@ import SummaryCards from '../components/studentComponents/SummaryCards';
 import StudentDataTable from '../components/studentComponents/StudentDataTable';
 import AddLocationDialog from '../components/studentComponents/AddLocationDialog';
 import LocationWiseStudentsGrid from '../components/studentComponents/LocationWiseStudentsGrid';
-import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Typography, Alert } from '@mui/material';
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert } from '@mui/material';
 import { FaLongArrowAltRight } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 
@@ -28,7 +27,7 @@ const SchoolDashboard = () => {
   const [locationID, setLocationID] = useState("");
   const [open, setOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<StudentLocationRecord | null>(null);
-  const [provisioningResult, setProvisioningResult] = useState<AdminProvisioningResult>(null);
+  const [syncWarning, setSyncWarning] = useState<string | null>(null);
 
   // Pagination for location table
   const [page, setPage] = useState(1);
@@ -114,8 +113,8 @@ const SchoolDashboard = () => {
         await updateLocation({ ...data, _id: selectedLocation._id });
       } else {
         const created = await createStudentLocation(data);
-        if (created.adminProvisioning) {
-          setProvisioningResult(created.adminProvisioning);
+        if (created.locationSync?.status === "failed") {
+          setSyncWarning(created.locationSync.message);
         }
       }
       // Refresh data
@@ -197,28 +196,17 @@ const SchoolDashboard = () => {
         setSelectedLocation={setSelectedLocation}
       />
 
-      <Dialog open={!!provisioningResult} onClose={() => setProvisioningResult(null)} maxWidth="sm" fullWidth>
+      <Dialog open={!!syncWarning} onClose={() => setSyncWarning(null)} maxWidth="sm" fullWidth>
         <DialogTitle>Location Created</DialogTitle>
         <DialogContent>
-          {provisioningResult?.status === 'success' ? (
-            <>
-              <DialogContentText sx={{ mb: 2 }}>
-                A school admin account was created automatically for this location. Save these
-                credentials now — the password can't be shown again.
-              </DialogContentText>
-              <Typography><strong>Username:</strong> {provisioningResult.username}</Typography>
-              <Typography><strong>Password:</strong> {provisioningResult.password}</Typography>
-            </>
-          ) : (
-            <Alert severity="warning">
-              Location was created, but automatic admin setup failed
-              {provisioningResult?.status === 'failed' ? `: ${provisioningResult.message}` : ''}.
-              You can add an admin for it manually from the Admin screen.
-            </Alert>
-          )}
+          <Alert severity="warning">
+            The location was created, but it could not be synced to the local
+            server{syncWarning ? `: ${syncWarning}` : ''}. It may not appear in
+            the Add Admin dropdown until the next edit re-syncs it.
+          </Alert>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setProvisioningResult(null)} variant="contained">
+          <Button onClick={() => setSyncWarning(null)} variant="contained">
             Done
           </Button>
         </DialogActions>

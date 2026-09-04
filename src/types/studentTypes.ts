@@ -33,11 +33,12 @@ export interface StudentDetailRecord {
 export interface IPayload {
   name: string;
   location: string;
-  baseUrl: string;
+  // No longer collected in the UI; one common base URL is shared by all local servers.
+  baseUrl?: string;
   amount?: string | number;
   status?: 'active' | 'inactive';
   _id?: string;
-  externalId: string;
+  externalId?: string;
 }
 
 export interface StudentLocationResponse {

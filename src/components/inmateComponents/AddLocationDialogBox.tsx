@@ -8,8 +8,6 @@ import { useEffect } from "react";
 const formSchema = z.object({
     location: z.string().nonempty("Location name is required"),
     name: z.string().nonempty("Name is required"),
-    baseUrl: z.string().url("Must be a valid URL"),
-    externalId: z.string().nonempty("External ID is required"),
     subscription_amount: z
         .number()
         .positive("Amount must be greater than 0")
@@ -17,6 +15,12 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+const EMPTY: FormValues = {
+    location: "",
+    name: "",
+    subscription_amount: 0,
+};
 
 type Props = {
     open: boolean;
@@ -26,51 +30,39 @@ type Props = {
     setSelectedLocation: any
 };
 
-export default function GlobalLocationDialog({ open, setOpen, handleLocationSubmit, seletedLocation,setSelectedLocation }: Props) {
+export default function GlobalLocationDialog({ open, setOpen, handleLocationSubmit, seletedLocation, setSelectedLocation }: Props) {
+    const isEdit = !!seletedLocation?._id;
+
     const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            location: "",
-            name: "",
-            baseUrl: "",
-            externalId: "",
-            subscription_amount: 0,
-        },
+        defaultValues: EMPTY,
     });
 
     useEffect(() => {
         if (seletedLocation?._id) {
             reset({
+                ...EMPTY,
                 location: seletedLocation?.location,
                 name: seletedLocation?.name,
-                baseUrl: seletedLocation?.baseUrl,
-                externalId: seletedLocation?.externalId || "",
                 subscription_amount: Number(seletedLocation?.subscription_amount) || 0,
             })
         }
     }, [seletedLocation?._id])
 
     const handleClose = () => {
-        reset({
-            location: "",
-            name: "",
-            baseUrl: "",
-            externalId: "",
-            subscription_amount: 0,
-        });
+        reset(EMPTY);
         setSelectedLocation(null);
         setOpen(!open);
     }
 
     const onSubmit = (data: FormValues) => {
-        console.log("Submitted Payload:", data);
         handleLocationSubmit(data);
-        handleClose(); // close after submit (optional)
+        handleClose();
     };
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-            <DialogTitle>{seletedLocation?._id ? "Update" :"Add"} Global Location</DialogTitle>
+            <DialogTitle>{isEdit ? "Update" : "Add"} Global Location</DialogTitle>
 
             <DialogContent dividers>
                 <Box
@@ -93,20 +85,14 @@ export default function GlobalLocationDialog({ open, setOpen, handleLocationSubm
                         helperText={errors.name?.message}
                     />
 
-                    <TextField
-                        label="Base URL"
-                        {...register("baseUrl")}
-                        error={!!errors.baseUrl}
-                        helperText={errors.baseUrl?.message}
-                    />
-
-                    <TextField
-                        label="External ID"
-                        {...register("externalId")}
-                        error={!!errors.externalId}
-                        helperText={errors.externalId?.message}
-                        disabled={!!seletedLocation?._id}
-                    />
+                    {isEdit && seletedLocation?.externalId && (
+                        <TextField
+                            label="External ID"
+                            value={seletedLocation.externalId}
+                            helperText="ID of this location in its own local server (read-only)"
+                            disabled
+                        />
+                    )}
 
                     <TextField
                         type="number"
@@ -124,7 +110,7 @@ export default function GlobalLocationDialog({ open, setOpen, handleLocationSubm
                     Cancel
                 </Button>
                 <Button type="submit" form="global-location-form" variant="contained">
-                    {seletedLocation?._id ? "Update" : "Submit"}
+                    {isEdit ? "Update" : "Submit"}
                 </Button>
             </DialogActions>
         </Dialog>
