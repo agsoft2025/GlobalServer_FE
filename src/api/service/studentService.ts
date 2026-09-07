@@ -76,6 +76,16 @@ export type CreateLocationResponse = Record<string, unknown> & {
   locationSync?: LocationSyncResult;
 };
 
+// The Global server re-mirrors the location to the local server on every human
+// edit too, so an update can also report a sync failure (e.g. the local server
+// was unreachable). Same warning surfaces to the Super Admin as on create.
+export type UpdateLocationResponse = Record<string, unknown> & {
+  status?: boolean;
+  data?: unknown;
+  message?: string;
+  locationSync?: LocationSyncResult;
+};
+
 type CreateAdmin = {
   username: string;
   fullname: string;
@@ -130,7 +140,7 @@ export async function updateStudentLocation(data: LocationPayload) {
 
 export async function updateLocation(data: LocationPayload) {
   const { _id, ...updateData } = data;
-  const res = await schoolApi.put(endpoints.location.byId(_id ?? ""), updateData);
+  const res = await schoolApi.put<UpdateLocationResponse>(endpoints.location.byId(_id ?? ""), updateData);
   return res.data;
 }
 

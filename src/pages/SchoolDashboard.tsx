@@ -110,7 +110,10 @@ const SchoolDashboard = () => {
   const handleSubmit = async (data: IPayload) => {
     try {
       if (selectedLocation?._id) {
-        await updateLocation({ ...data, _id: selectedLocation._id });
+        const updated = await updateLocation({ ...data, _id: selectedLocation._id });
+        if (updated?.locationSync?.status === "failed") {
+          setSyncWarning(updated.locationSync.message);
+        }
       } else {
         const created = await createStudentLocation(data);
         if (created.locationSync?.status === "failed") {
