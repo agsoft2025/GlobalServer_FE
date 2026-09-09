@@ -9,9 +9,22 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const menuItems = [
+  type MenuItem = {
+    name: string;
+    path?: string;
+    children?: { name: string; path: string }[];
+  };
+
+  const menuItems: MenuItem[] = [
     { name: "Inmate Dashboard", path: "/inmate-dashboard" },
-    { name: "School Dashboard", path: "/school-dashboard" },
+    {
+      name: "School Dashboard",
+      children: [
+        { name: "Dashboard", path: "/school-dashboard" },
+        { name: "Admins", path: "/school-dashboard/admin" },
+        { name: "SMS Templates", path: "/school-dashboard/sms-templates" },
+      ],
+    },
   ];
 
   const handleLogout = () => {
@@ -74,20 +87,43 @@ export default function Sidebar() {
 
         {/* Menu */}
         <nav className="flex flex-col gap-4">
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                `px-4 py-2 rounded-md font-medium hover:bg-white/20 transition ${
-                  isActive ? "bg-white/30" : ""
-                }`
-              }
-            >
-              {item.name}
-            </NavLink>
-          ))}
+          {menuItems.map((item) =>
+            item.children ? (
+              <div key={item.name} className="flex flex-col gap-1">
+                <span className="px-4 pt-2 text-xs font-semibold uppercase tracking-wide text-white/70">
+                  {item.name}
+                </span>
+                {item.children.map((child) => (
+                  <NavLink
+                    key={child.path}
+                    to={child.path}
+                    end
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `px-4 py-2 rounded-md font-medium hover:bg-white/20 transition ${
+                        isActive ? "bg-white/30" : ""
+                      }`
+                    }
+                  >
+                    {child.name}
+                  </NavLink>
+                ))}
+              </div>
+            ) : (
+              <NavLink
+                key={item.path}
+                to={item.path ?? "#"}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-md font-medium hover:bg-white/20 transition ${
+                    isActive ? "bg-white/30" : ""
+                  }`
+                }
+              >
+                {item.name}
+              </NavLink>
+            ),
+          )}
         </nav>
 
         {/* Logout Button */}

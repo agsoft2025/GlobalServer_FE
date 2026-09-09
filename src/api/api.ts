@@ -53,6 +53,12 @@ export const endpoints = {
     byId: (id: string) => `${apiPath("/admin")}/${encodeURIComponent(id)}`,
     create: "/user/admin/create",
   },
+  // SMS Template Master (Super Admin) — served by SchoolGlobalServer_BE.
+  smsTemplates: {
+    list: apiPath("/sms-templates"),
+    byId: (id: string) => `${apiPath("/sms-templates")}/${encodeURIComponent(id)}`,
+    status: (id: string) => `${apiPath("/sms-templates")}/${encodeURIComponent(id)}/status`,
+  },
 } as const;
 
 export const schoolLocalEndpoints = {
