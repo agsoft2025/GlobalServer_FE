@@ -58,4 +58,19 @@ export interface SmsTemplatePayload {
   dltTemplateId: string;
   approvedText: string;
   status: SmsTemplateStatus;
+  fields: SmsTemplateFieldSpec[];
 }
+
+// Student-record values a "record" slot may be bound to. MUST match
+// RECORD_FIELD_KEYS in SchoolGlobalServer_BE/src/utils/dltTemplate.js and the
+// keys emitted by SchoolServer_BE recipientResolver.
+export const RECORD_FIELD_OPTIONS: { key: string; label: string }[] = [
+  { key: "student_name", label: "Student name" },
+  { key: "father_name", label: "Father's name" },
+  { key: "mother_name", label: "Mother's name" },
+  { key: "registration_number", label: "Registration number" },
+  { key: "class_name", label: "Class name" },
+  { key: "section", label: "Section" },
+  { key: "hostel_name", label: "Hostel name" },
+  { key: "board_name", label: "Board name" },
+];
