@@ -4,16 +4,16 @@ import { FiMenu, FiX, FiChevronDown, FiChevronRight, FiHome, FiUsers, FiMessageS
 import logo from "../assets/AGS_logo.png";
 import { useAuth } from "../context/AuthContext";
 
-type MenuItem = {
-  name: string;
-  path?: string;
-  icon?: React.ReactNode;
-  children?: {
-    name: string;
-    path: string;
-    icon?: React.ReactNode;
-  }[];
-};
+// type MenuItem = {
+//   name: string;
+//   path?: string;
+//   icon?: React.ReactNode;
+//   children?: {
+//     name: string;
+//     path: string;
+//     icon?: React.ReactNode;
+//   }[];
+// };
 
 export default function Sidebar() {
   const { setToken } = useAuth();
@@ -22,34 +22,34 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [schoolOpen, setSchoolOpen] = useState(true);
 
-  const menuItems: MenuItem[] = [
-    {
-      name: "Inmate Dashboard",
-      path: "/inmate-dashboard",
-      icon: <FiUsers size={19} />,
-    },
-    {
-      name: "School Dashboard",
-      icon: <FiHome size={19} />,
-      children: [
-        {
-          name: "Dashboard",
-          path: "/school-dashboard",
-          icon: <FiGrid size={17} />,
-        },
-        {
-          name: "Admins",
-          path: "/school-dashboard/admin",
-          icon: <FiUsers size={17} />,
-        },
-        {
-          name: "SMS Templates",
-          path: "/school-dashboard/sms-templates",
-          icon: <FiMessageSquare size={17} />,
-        },
-      ],
-    }
-  ];
+  // const menuItems: MenuItem[] = [
+  //   {
+  //     name: "Inmate Dashboard",
+  //     path: "/inmate-dashboard",
+  //     icon: <FiUsers size={19} />,
+  //   },
+  //   {
+  //     name: "School Dashboard",
+  //     icon: <FiHome size={19} />,
+  //     children: [
+  //       {
+  //         name: "Dashboard",
+  //         path: "/school-dashboard",
+  //         icon: <FiGrid size={17} />,
+  //       },
+  //       {
+  //         name: "Admins",
+  //         path: "/school-dashboard/admin",
+  //         icon: <FiUsers size={17} />,
+  //       },
+  //       {
+  //         name: "SMS Templates",
+  //         path: "/school-dashboard/sms-templates",
+  //         icon: <FiMessageSquare size={17} />,
+  //       },
+  //     ],
+  //   }
+  // ];
 
   const handleLogout = () => {
     setToken(null);
