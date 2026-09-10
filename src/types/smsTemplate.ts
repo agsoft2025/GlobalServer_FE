@@ -21,6 +21,7 @@ export interface SmsTemplate {
   description: string;
   domain: SmsTemplateDomain;
   dltTemplateId: string;
+  senderId: string;
   approvedText: string;
   placeholderCount: number;
   fields: SmsTemplateFieldSpec[];
@@ -56,6 +57,7 @@ export interface SmsTemplatePayload {
   description?: string;
   domain: SmsTemplateDomain;
   dltTemplateId: string;
+  senderId: string;
   approvedText: string;
   status: SmsTemplateStatus;
   fields: SmsTemplateFieldSpec[];

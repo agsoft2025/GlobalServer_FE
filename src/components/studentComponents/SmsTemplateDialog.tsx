@@ -17,6 +17,8 @@ import type {
   SmsTemplateStatus,
 } from "../../types/smsTemplate";
 import { RECORD_FIELD_OPTIONS } from "../../types/smsTemplate";
+import type { SenderId } from "../../types/senderId";
+import { listSenderIds } from "../../api/service/senderIdService";
 import { buildPreview, countPlaceholders } from "../../utils/smsTemplatePreview";
 
 type Props = {
@@ -31,6 +33,7 @@ type FormState = {
   name: string;
   description: string;
   dltTemplateId: string;
+  senderId: string;
   approvedText: string;
   status: SmsTemplateStatus;
 };
@@ -39,6 +42,7 @@ const EMPTY: FormState = {
   name: "",
   description: "",
   dltTemplateId: "",
+  senderId: "",
   approvedText: "",
   status: "INACTIVE",
 };
@@ -66,6 +70,14 @@ export default function SmsTemplateDialog({ open, setOpen, onSubmit, selected, s
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [senders, setSenders] = useState<SenderId[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    listSenderIds({ status: "ACTIVE", limit: 100 })
+      .then((res) => setSenders(res.data))
+      .catch(() => setSenders([]));
+  }, [open]);
 
   useEffect(() => {
     if (selected) {
@@ -73,6 +85,7 @@ export default function SmsTemplateDialog({ open, setOpen, onSubmit, selected, s
         name: selected.name || "",
         description: selected.description || "",
         dltTemplateId: selected.dltTemplateId || "",
+        senderId: selected.senderId || "",
         approvedText: selected.approvedText || "",
         status: selected.status || "INACTIVE",
       });
@@ -124,6 +137,8 @@ export default function SmsTemplateDialog({ open, setOpen, onSubmit, selected, s
     else if (placeholderCount < 1) next.approvedText = "Approved text must contain at least one {#...#} placeholder";
     if (form.status === "ACTIVE" && !form.dltTemplateId.trim())
       next.dltTemplateId = "A DLT Template ID is required to activate a template";
+    if (form.status === "ACTIVE" && !form.senderId.trim())
+      next.senderId = "A Sender ID is required to activate a template";
 
     fields.forEach((f, i) => {
       if (!f.label.trim()) next[`field_${i}`] = "Give this slot a label";
@@ -162,6 +177,7 @@ export default function SmsTemplateDialog({ open, setOpen, onSubmit, selected, s
         description: form.description.trim(),
         domain: "SCHOOL",
         dltTemplateId: form.dltTemplateId.trim(),
+        senderId: form.senderId.trim().toUpperCase(),
         approvedText: form.approvedText.trim(),
         status: form.status,
         fields: fields.map((f, i) => ({
@@ -219,6 +235,33 @@ export default function SmsTemplateDialog({ open, setOpen, onSubmit, selected, s
               error={!!errors.dltTemplateId}
               helperText={errors.dltTemplateId || "Operator/DLT-registered numeric id. Required before activation."}
             />
+
+            <TextField
+              select
+              label="Sender ID"
+              name="senderId"
+              value={form.senderId}
+              onChange={change}
+              fullWidth
+              error={!!errors.senderId}
+              helperText={
+                errors.senderId ||
+                "DLT-approved sender header this template is registered under. School Admins never pick a sender — it is derived from the template."
+              }
+            >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+              {form.senderId && !senders.some((s) => s.header === form.senderId) && (
+                <MenuItem value={form.senderId}>{form.senderId} (inactive / unregistered)</MenuItem>
+              )}
+              {senders.map((s) => (
+                <MenuItem key={s.id} value={s.header}>
+                  {s.header}
+                  {s.description ? ` — ${s.description}` : ""}
+                </MenuItem>
+              ))}
+            </TextField>
 
             <TextField
               label="Approved Template Text"

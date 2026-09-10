@@ -10,6 +10,8 @@ const InmateDashboard = lazy(() => import('./pages/InmateDashboard'));
 const SchoolDashboard = lazy(() => import('./pages/SchoolDashboard'));
 const SchoolAdmins = lazy(() => import('./pages/SchoolAdmins'));
 const SchoolSmsTemplates = lazy(() => import('./pages/SchoolSmsTemplates'));
+const SenderIds = lazy(() => import('./pages/SenderIds'));
+const SchoolSmsConfig = lazy(() => import('./pages/SchoolSmsConfig'));
 const InmateAdmins = lazy(() => import('./pages/InmateAdmins'));
 const NotFound = lazy(() => import('./pages/NotFoundPage'));
 const Layout = lazy(() => import('./pages/Layout'));
@@ -34,6 +36,8 @@ function App() {
               <Route path="/school-dashboard" element={<SchoolDashboard />} />
               <Route path="/school-dashboard/admin" element={<SchoolAdmins />} />
               <Route path="/school-dashboard/sms-templates" element={<SchoolSmsTemplates />} />
+              <Route path="/school-dashboard/sender-ids" element={<SenderIds />} />
+              <Route path="/school-dashboard/sms-config" element={<SchoolSmsConfig />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

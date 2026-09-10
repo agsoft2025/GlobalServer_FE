@@ -12,13 +12,17 @@ import {
   MenuItem,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Chip, Box } from '@mui/material';
 import { getSchoolLocations, type SchoolLocationOption } from '../../api/service/adminService';
+import { listSenderIds } from '../../api/service/senderIdService';
+import { getSchoolSmsConfig } from '../../api/service/schoolSmsConfigService';
 
 type SchoolAdminFormData = {
   username: string;
   fullname: string;
   password: string;
   location_id: string;
+  assignedSenderIds?: string[];
 };
 
 type AddSchoolAdminDialogProps = {
@@ -48,12 +52,20 @@ export default function AddSchoolAdminDialog({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [locations, setLocations] = useState<SchoolLocationOption[]>([]);
+  const [senderOptions, setSenderOptions] = useState<string[]>([]);
+  const [assignedSenderIds, setAssignedSenderIds] = useState<string[]>([]);
+  // Only write the school's Sender ID config if the Super Admin actually edited
+  // this field — an untouched field must never clobber the school's setting.
+  const [sendersTouched, setSendersTouched] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     getSchoolLocations()
       .then(setLocations)
       .catch((error) => console.error('Failed to fetch school locations:', error));
+    listSenderIds({ status: 'ACTIVE', limit: 100 })
+      .then((res) => setSenderOptions(res.data.map((s) => s.header)))
+      .catch((error) => console.error('Failed to fetch sender IDs:', error));
   }, [open]);
 
   useEffect(() => {
@@ -68,7 +80,28 @@ export default function AddSchoolAdminDialog({
       setFormData(initialFormData);
     }
     setShowPassword(false);
+    setSendersTouched(false);
+    setAssignedSenderIds([]);
   }, [selectedAdmin, open]);
+
+  // Prefill the current Sender ID assignment for the chosen school.
+  useEffect(() => {
+    if (!open || !formData.location_id) {
+      setAssignedSenderIds([]);
+      return;
+    }
+    let cancelled = false;
+    getSchoolSmsConfig(formData.location_id)
+      .then((res) => {
+        if (!cancelled) setAssignedSenderIds(res.data.configured ? res.data.assignedSenderIds : []);
+      })
+      .catch(() => {
+        if (!cancelled) setAssignedSenderIds([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, formData.location_id]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -116,6 +149,8 @@ export default function AddSchoolAdminDialog({
     setFormData(initialFormData);
     setErrors({});
     setSelectedAdmin(null);
+    setSendersTouched(false);
+    setAssignedSenderIds([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -125,7 +160,10 @@ export default function AddSchoolAdminDialog({
 
     try {
       setIsSubmitting(true);
-      await handleSubmitAdmin(formData);
+      await handleSubmitAdmin({
+        ...formData,
+        ...(sendersTouched ? { assignedSenderIds } : {}),
+      });
       handleClose();
     } catch (error) {
       console.error('Error submitting admin:', error);
@@ -176,6 +214,45 @@ export default function AddSchoolAdminDialog({
               {locations.map((loc) => (
                 <MenuItem key={loc._id} value={loc._id}>
                   {loc.schoolName} — {loc.locationName}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              label="SMS Sender IDs"
+              value={assignedSenderIds}
+              onChange={(e) => {
+                const v = e.target.value;
+                setAssignedSenderIds(typeof v === 'string' ? v.split(',') : (v as unknown as string[]));
+                setSendersTouched(true);
+              }}
+              fullWidth
+              disabled={!formData.location_id}
+              helperText={
+                !formData.location_id
+                  ? 'Pick a school first'
+                  : sendersTouched
+                    ? 'Applies to the whole school/location. Templates follow automatically from the DLT Sender ID.'
+                    : 'Leave unchanged to keep the current setting. Applies to the whole school/location.'
+              }
+              SelectProps={{
+                multiple: true,
+                renderValue: (selected) =>
+                  (selected as string[]).length === 0 ? (
+                    <span style={{ color: '#9ca3af' }}>none</span>
+                  ) : (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {(selected as string[]).map((h) => (
+                        <Chip key={h} label={h} size="small" />
+                      ))}
+                    </Box>
+                  ),
+              }}
+            >
+              {senderOptions.map((h) => (
+                <MenuItem key={h} value={h}>
+                  {h}
                 </MenuItem>
               ))}
             </TextField>

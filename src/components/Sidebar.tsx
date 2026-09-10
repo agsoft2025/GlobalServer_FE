@@ -23,6 +23,8 @@ export default function Sidebar() {
         { name: "Dashboard", path: "/school-dashboard" },
         { name: "Admins", path: "/school-dashboard/admin" },
         { name: "SMS Templates", path: "/school-dashboard/sms-templates" },
+        { name: "Sender IDs", path: "/school-dashboard/sender-ids" },
+        { name: "SMS Configuration", path: "/school-dashboard/sms-config" },
       ],
     },
   ];

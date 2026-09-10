@@ -59,6 +59,17 @@ export const endpoints = {
     byId: (id: string) => `${apiPath("/sms-templates")}/${encodeURIComponent(id)}`,
     status: (id: string) => `${apiPath("/sms-templates")}/${encodeURIComponent(id)}/status`,
   },
+  // DLT-approved sender headers (Super Admin) — served by SchoolGlobalServer_BE.
+  senderIds: {
+    list: apiPath("/sender-ids"),
+    byId: (id: string) => `${apiPath("/sender-ids")}/${encodeURIComponent(id)}`,
+    status: (id: string) => `${apiPath("/sender-ids")}/${encodeURIComponent(id)}/status`,
+  },
+  // Per-school SMS template whitelist (Super Admin) — served by SchoolGlobalServer_BE.
+  schoolSmsConfig: {
+    list: apiPath("/school-sms-config"),
+    byExternalId: (externalId: string) => `${apiPath("/school-sms-config")}/${encodeURIComponent(externalId)}`,
+  },
 } as const;
 
 export const schoolLocalEndpoints = {

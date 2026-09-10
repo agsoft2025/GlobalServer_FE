@@ -1,10 +1,18 @@
 import { useState, useEffect } from "react";
 import AddSchoolAdminDialog from "../components/studentComponents/AddAdminDialog";
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, TablePagination } from "@mui/material";
-import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import SchoolSmsConfigDialog from "../components/studentComponents/SchoolSmsConfigDialog";
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, TablePagination, Tooltip, Snackbar, Alert, Chip } from "@mui/material";
+import { FaPlus, FaEdit, FaTrash, FaCommentDots } from "react-icons/fa";
 import { createAdmin } from "../api/service/studentService";
 import { getAdmins, deleteAdmin, updateAdmin, type Admin, type AdminQueryParams } from "../api/service/adminService";
+import { listSchoolSmsConfigs, updateSchoolSmsConfig } from "../api/service/schoolSmsConfigService";
 import { ConfirmDialog } from "../components/common/ConfirmDialog";
+
+// The populated location object carried on an admin row. `_id` is the tenant key
+// (local StudentLocation._id) that the per-school SMS config is stored under.
+type AdminLocation = { _id: string; schoolName?: string; locationName?: string };
+const adminLocation = (a: Admin): AdminLocation | null =>
+  a.location_id && typeof a.location_id === "object" ? (a.location_id as AdminLocation) : null;
 
 const SchoolAdmins = () => {
     const [openAdmin, setOpenAdmin] = useState<boolean>(false);
@@ -14,6 +22,10 @@ const SchoolAdmins = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; admin: Admin | null }>({ open: false, admin: null });
+    const [smsConfig, setSmsConfig] = useState<{ externalId: string; name: string; location: string } | null>(null);
+    const [toast, setToast] = useState<{ open: boolean; msg: string }>({ open: false, msg: "" });
+    // externalId (== location_id._id) -> assigned Sender ID headers
+    const [sendersByLocation, setSendersByLocation] = useState<Record<string, string[]>>({});
 
     const fetchAdmins = async () => {
         try {
@@ -23,9 +35,23 @@ const SchoolAdmins = () => {
             };
             const response = await getAdmins(params);
             setAdmins(response.data);
-            setTotalItems(response.pagination.totalItems);
+            // The local /admin endpoint returns totalItems at the top level; keep
+            // the nested pagination shape as a fallback.
+            const r = response as unknown as { totalItems?: number; pagination?: { totalItems?: number } };
+            setTotalItems(r.pagination?.totalItems ?? r.totalItems ?? response.data.length);
         } catch (error) {
             console.error("Failed to fetch admins:", error);
+        }
+    };
+
+    const fetchSmsConfigs = async () => {
+        try {
+            const res = await listSchoolSmsConfigs();
+            setSendersByLocation(
+                Object.fromEntries(res.data.map((c) => [c.externalId, c.assignedSenderIds])),
+            );
+        } catch (error) {
+            console.error("Failed to fetch SMS sender assignments:", error);
         }
     };
 
@@ -33,15 +59,36 @@ const SchoolAdmins = () => {
         fetchAdmins();
     }, [page, rowsPerPage]);
 
+    useEffect(() => {
+        fetchSmsConfigs();
+    }, []);
+
     const handleSubmitAdmin = async (data: any) => {
         try {
+            const { assignedSenderIds, ...adminData } = data;
             if (selectedAdmin) {
-                // Update
-                await updateAdmin(selectedAdmin._id, data);
+                await updateAdmin(selectedAdmin._id, adminData);
             } else {
-                // Create
-                await createAdmin(data);
+                await createAdmin(adminData);
             }
+
+            // Sender IDs are a property of the school/location, not the admin —
+            // persist them against the location the admin belongs to.
+            const locationId =
+                adminData.location_id ||
+                (selectedAdmin && (typeof selectedAdmin.location_id === "object"
+                    ? selectedAdmin.location_id?._id
+                    : selectedAdmin.location_id));
+            if (Array.isArray(assignedSenderIds) && locationId) {
+                try {
+                    await updateSchoolSmsConfig(locationId, { assignedSenderIds });
+                    fetchSmsConfigs();
+                } catch (cfgErr) {
+                    console.error("Sender assignment failed:", cfgErr);
+                    setToast({ open: true, msg: "Admin saved, but the Sender ID assignment failed — set it from the SMS action." });
+                }
+            }
+
             fetchAdmins();
             setOpenAdmin(false);
             setSelectedAdmin(null);
@@ -97,6 +144,7 @@ const SchoolAdmins = () => {
                             <TableCell>Username</TableCell>
                             <TableCell>Full Name</TableCell>
                             <TableCell>Location</TableCell>
+                            <TableCell>SMS Sender ID</TableCell>
                             <TableCell>Role</TableCell>
                             <TableCell>Actions</TableCell>
                         </TableRow>
@@ -111,8 +159,52 @@ const SchoolAdmins = () => {
                                         ? admin.location_id.schoolName || admin.location_id.locationName || "N/A"
                                         : "N/A"}
                                 </TableCell>
+                                <TableCell>
+                                    {(() => {
+                                        const loc = adminLocation(admin);
+                                        if (admin.role === "SUPER ADMIN" || !loc) return "—";
+                                        const headers = sendersByLocation[loc._id];
+                                        if (headers === undefined)
+                                            return <span className="text-gray-400 text-sm">— (default)</span>;
+                                        if (headers.length === 0)
+                                            return <span className="text-amber-700 text-sm">none — disabled</span>;
+                                        return (
+                                            <span className="flex gap-1 flex-wrap">
+                                                {headers.map((h) => (
+                                                    <Chip key={h} size="small" label={h} />
+                                                ))}
+                                            </span>
+                                        );
+                                    })()}
+                                </TableCell>
                                 <TableCell>{admin.role}</TableCell>
                                 <TableCell>
+                                    {admin.role !== "SUPER ADMIN" && (
+                                        <Tooltip
+                                            title={
+                                                adminLocation(admin)
+                                                    ? "SMS templates & sender IDs for this school"
+                                                    : "Assign this admin to a school first"
+                                            }
+                                        >
+                                            <span>
+                                                <IconButton
+                                                    color="secondary"
+                                                    disabled={!adminLocation(admin)}
+                                                    onClick={() => {
+                                                        const loc = adminLocation(admin)!;
+                                                        setSmsConfig({
+                                                            externalId: loc._id,
+                                                            name: loc.schoolName || "",
+                                                            location: loc.locationName || "",
+                                                        });
+                                                    }}
+                                                >
+                                                    <FaCommentDots />
+                                                </IconButton>
+                                            </span>
+                                        </Tooltip>
+                                    )}
                                     <IconButton onClick={() => handleEdit(admin)} color="primary">
                                         <FaEdit />
                                     </IconButton>
@@ -155,6 +247,30 @@ const SchoolAdmins = () => {
                 title="Delete Admin"
                 message={`Are you sure you want to delete ${confirmDelete.admin?.fullname}?`}
             />
+
+            {/* Per-school SMS template / sender-ID assignment */}
+            <SchoolSmsConfigDialog
+                open={!!smsConfig}
+                externalId={smsConfig?.externalId ?? null}
+                schoolName={smsConfig ? [smsConfig.name, smsConfig.location].filter(Boolean).join(" — ") : ""}
+                meta={smsConfig ? { name: smsConfig.name, location: smsConfig.location } : undefined}
+                onClose={() => setSmsConfig(null)}
+                onSaved={() => {
+                    setToast({ open: true, msg: "SMS configuration saved" });
+                    fetchSmsConfigs();
+                }}
+            />
+
+            <Snackbar
+                open={toast.open}
+                autoHideDuration={3000}
+                onClose={() => setToast({ open: false, msg: "" })}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert severity="success" onClose={() => setToast({ open: false, msg: "" })}>
+                    {toast.msg}
+                </Alert>
+            </Snackbar>
         </div>
     );
 };

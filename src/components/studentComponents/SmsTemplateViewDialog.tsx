@@ -41,6 +41,7 @@ export default function SmsTemplateViewDialog({ open, template, onClose }: Props
         <Row label="Description" value={template.description || "—"} />
         <Row label="Domain" value={template.domain} />
         <Row label="DLT Template ID" value={template.dltTemplateId || <em className="text-amber-700">not set</em>} />
+        <Row label="Sender ID" value={template.senderId || <em className="text-amber-700">not set</em>} />
         <Row label="Version" value={`v${template.version}`} />
         <Row label="Dynamic slots" value={slots} />
         <Row
