@@ -8,7 +8,7 @@ export interface SchoolSmsConfigRow {
   schoolCode: string;
   name: string;
   location: string;
-  assignedSenderIds: string[];
+  assignedSenderId: string;
   templateCount: number;
   updatedAt: string | null;
   updatedBy?: { id?: string; username?: string } | null;
@@ -41,7 +41,7 @@ export interface SchoolSmsConfigDetail {
   name: string;
   location: string;
   configured: boolean;
-  assignedSenderIds: string[];
+  assignedSenderId: string;
   availableSenders: AvailableSender[];
   updatedAt: string | null;
   updatedBy?: { id?: string; username?: string } | null;
@@ -53,7 +53,7 @@ export interface SchoolSmsConfigDetailResponse {
 }
 
 export interface UpdateSchoolSmsConfigPayload {
-  assignedSenderIds: string[];
+  assignedSenderId: string;
   name?: string;
   location?: string;
   schoolCode?: string;
