@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -10,15 +10,24 @@ import {
   IconButton,
   InputAdornment,
   MenuItem,
-} from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { getSchoolLocations, type SchoolLocationOption } from '../../api/service/adminService';
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+
+import {
+  getSchoolLocations,
+  type SchoolLocationOption,
+} from "../../api/service/adminService";
+
+import { listSenderIds } from "../../api/service/senderIdService";
+
+import { getSchoolSmsConfig } from "../../api/service/schoolSmsConfigService";
 
 type SchoolAdminFormData = {
   username: string;
   fullname: string;
   password: string;
   location_id: string;
+  assignedSenderId?: string;
 };
 
 type AddSchoolAdminDialogProps = {
@@ -30,10 +39,10 @@ type AddSchoolAdminDialogProps = {
 };
 
 const initialFormData: SchoolAdminFormData = {
-  username: '',
-  fullname: '',
-  password: '',
-  location_id: '',
+  username: "",
+  fullname: "",
+  password: "",
+  location_id: "",
 };
 
 export default function AddSchoolAdminDialog({
@@ -44,69 +53,143 @@ export default function AddSchoolAdminDialog({
   setSelectedAdmin,
 }: AddSchoolAdminDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState<SchoolAdminFormData>(initialFormData);
+
+  const [formData, setFormData] =
+    useState<SchoolAdminFormData>(initialFormData);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [locations, setLocations] = useState<SchoolLocationOption[]>([]);
+
+  const [senderOptions, setSenderOptions] = useState<string[]>([]);
+
+  // Single sender ID for the selected school.
+  // Empty string means explicitly disabled.
+  const [assignedSenderId, setAssignedSenderId] = useState("");
+
+  // Only write the school's Sender ID config if the Super Admin
+  // actually edited this field.
+  const [sendersTouched, setSendersTouched] = useState(false);
 
   useEffect(() => {
     if (!open) return;
+
     getSchoolLocations()
       .then(setLocations)
-      .catch((error) => console.error('Failed to fetch school locations:', error));
+      .catch((error) =>
+        console.error("Failed to fetch school locations:", error)
+      );
+
+    listSenderIds({ status: "ACTIVE", limit: 100 })
+      .then((res) => {
+        setSenderOptions(res.data.map((s) => s.header));
+      })
+      .catch((error) =>
+        console.error("Failed to fetch sender IDs:", error)
+      );
   }, [open]);
 
   useEffect(() => {
     if (selectedAdmin) {
       setFormData({
-        username: selectedAdmin.username || '',
-        fullname: selectedAdmin.fullname || '',
-        password: '', // don't prefill password
-        location_id: selectedAdmin.location_id?._id || selectedAdmin.location_id || '',
+        username: selectedAdmin.username || "",
+        fullname: selectedAdmin.fullname || "",
+        password: "",
+        location_id:
+          selectedAdmin.location_id?._id ||
+          selectedAdmin.location_id ||
+          "",
       });
     } else {
       setFormData(initialFormData);
     }
+
     setShowPassword(false);
+    setSendersTouched(false);
+    setAssignedSenderId("");
   }, [selectedAdmin, open]);
+
+  // Prefill the current Sender ID assignment for the chosen school.
+  useEffect(() => {
+    if (!open || !formData.location_id) {
+      setAssignedSenderId("");
+      return;
+    }
+
+    let cancelled = false;
+
+    getSchoolSmsConfig(formData.location_id)
+      .then((res) => {
+        if (cancelled) return;
+
+        const config = res.data;
+
+        if (config?.configured) {
+          setAssignedSenderId(config.assignedSenderId || "");
+        } else {
+          // No SchoolSmsConfig exists.
+          // Keep this empty; backend will use the default sender.
+          setAssignedSenderId("");
+        }
+      })
+      .catch((error) => {
+        console.error(
+          "Failed to fetch school SMS config:",
+          error
+        );
+
+        if (!cancelled) {
+          setAssignedSenderId("");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, formData.location_id]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+      newErrors.username = "Username is required";
     }
 
     if (!formData.fullname.trim()) {
-      newErrors.fullname = 'Full name is required';
+      newErrors.fullname = "Full name is required";
     }
 
-    // Only require password when creating
+    // Only require password when creating.
     if (!selectedAdmin && !formData.password.trim()) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     }
 
-    // Only require location when creating; editing an existing admin's location is optional
+    // Only require location when creating.
     if (!selectedAdmin && !formData.location_id) {
-      newErrors.location_id = 'School is required';
+      newErrors.location_id = "School is required";
     }
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { name, value } = e.target;
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
 
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: '',
+        [name]: "",
       }));
     }
   };
@@ -116,29 +199,49 @@ export default function AddSchoolAdminDialog({
     setFormData(initialFormData);
     setErrors({});
     setSelectedAdmin(null);
+    setSendersTouched(false);
+    setAssignedSenderId("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
     try {
       setIsSubmitting(true);
-      await handleSubmitAdmin(formData);
+
+      await handleSubmitAdmin({
+        ...formData,
+
+        // Only send the sender ID if the user actually edited it.
+        ...(sendersTouched
+          ? {
+              assignedSenderId,
+            }
+          : {}),
+      });
+
       handleClose();
     } catch (error) {
-      console.error('Error submitting admin:', error);
+      console.error("Error submitting admin:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+    >
       <form onSubmit={handleSubmit}>
         <DialogTitle>
-          {selectedAdmin ? 'Edit Admin' : 'Add New Admin'}
+          {selectedAdmin ? "Edit Admin" : "Add New Admin"}
         </DialogTitle>
 
         <DialogContent dividers>
@@ -174,8 +277,45 @@ export default function AddSchoolAdminDialog({
               helperText={errors.location_id}
             >
               {locations.map((loc) => (
-                <MenuItem key={loc._id} value={loc._id}>
+                <MenuItem
+                  key={loc._id}
+                  value={loc._id}
+                >
                   {loc.schoolName} — {loc.locationName}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              label="SMS Sender ID"
+              value={assignedSenderId}
+              onChange={(e) => {
+                setAssignedSenderId(
+                  e.target.value
+                );
+                setSendersTouched(true);
+              }}
+              fullWidth
+              disabled={!formData.location_id}
+              helperText={
+                !formData.location_id
+                  ? "Pick a school first"
+                  : sendersTouched
+                  ? "Applies to the whole school/location. Templates follow automatically from the DLT Sender ID."
+                  : "Leave unchanged to keep the current setting. Applies to the whole school/location."
+              }
+            >
+              <MenuItem value="">
+                None — disabled
+              </MenuItem>
+
+              {senderOptions.map((senderId) => (
+                <MenuItem
+                  key={senderId}
+                  value={senderId}
+                >
+                  {senderId}
                 </MenuItem>
               ))}
             </TextField>
@@ -183,7 +323,9 @@ export default function AddSchoolAdminDialog({
             <TextField
               label="Password"
               name="password"
-              type={showPassword ? 'text' : 'password'}
+              type={
+                showPassword ? "text" : "password"
+              }
               value={formData.password}
               onChange={handleChange}
               fullWidth
@@ -194,11 +336,23 @@ export default function AddSchoolAdminDialog({
                   <InputAdornment position="end">
                     <IconButton
                       edge="end"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      onClick={() => setShowPassword(prev => !prev)}
+                      aria-label={
+                        showPassword
+                          ? "Hide password"
+                          : "Show password"
+                      }
+                      onClick={() =>
+                        setShowPassword(
+                          (prev) => !prev
+                        )
+                      }
                       size="large"
                     >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                      {showPassword ? (
+                        <VisibilityOff />
+                      ) : (
+                        <Visibility />
+                      )}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -208,7 +362,11 @@ export default function AddSchoolAdminDialog({
         </DialogContent>
 
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={handleClose} variant='outlined' color="error">
+          <Button
+            onClick={handleClose}
+            variant="outlined"
+            color="error"
+          >
             Cancel
           </Button>
 
@@ -216,9 +374,13 @@ export default function AddSchoolAdminDialog({
             type="submit"
             variant="contained"
             disabled={isSubmitting}
-            startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+            startIcon={
+              isSubmitting ? (
+                <CircularProgress size={20} />
+              ) : null
+            }
           >
-            {selectedAdmin ? 'Update' : 'Create'}
+            {selectedAdmin ? "Update" : "Create"}
           </Button>
         </DialogActions>
       </form>
