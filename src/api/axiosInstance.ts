@@ -8,7 +8,7 @@ import type {
 import { getApiBaseUrl } from "./api";
 
 const api: AxiosInstance = axios.create({
-  baseURL: getApiBaseUrl("inmate"),
+  baseURL: getApiBaseUrl("school"),
   timeout: 30000,
   headers: {
     "Content-Type": "application/json"
